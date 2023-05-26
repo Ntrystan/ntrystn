@@ -34,7 +34,7 @@ class PineconeMemory(VectorMemory):
             "pod_type": "p1",
             "dimension": 1536,
         }
-        options.update(self.options)
+        options |= self.options
         if self.index_name not in pinecone.list_indexes():
             self.index = pinecone.create_index(self.index_name, **options)
         else:
@@ -56,19 +56,14 @@ class PineconeMemory(VectorMemory):
         )
         sorted_results = sorted(results.matches, key=lambda x: x.score, reverse=True)
 
-        # Retrieve text for each embedding and add it to the results
-        sorted_results_with_text = []
-
-        for item in sorted_results:
-            sorted_results_with_text.append(
-                {
-                    "key": item.id,
-                    "score": item.score,
-                    "data": item.metadata["data"],
-                }
-            )
-
-        return sorted_results_with_text
+        return [
+            {
+                "key": item.id,
+                "score": item.score,
+                "data": item.metadata["data"],
+            }
+            for item in sorted_results
+        ]
 
     def delete_vector(self, key: IndexKey):
         self.index.delete(key)

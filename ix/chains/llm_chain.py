@@ -36,8 +36,7 @@ class LLMChain(LangchainLLMChain):
         prompt_config = {
             "input_variables": [],
             "partial_variables": {},
-        }
-        prompt_config.update(message_config)
+        } | message_config
         logger.debug(f"LLMChain creating message with prompt_config={prompt_config}")
         prompt = PromptTemplate(**prompt_config)
         return template_class(prompt=prompt)
@@ -60,18 +59,18 @@ class LLMChain(LangchainLLMChain):
 
         prepared_config, context = cls.prepare_config(config, callback_manager)
 
-        # load message templates
-        messages = []
-        for message in config.pop("messages"):
-            messages.append(cls.create_message(message, prepared_config, context))
-
+        messages = [
+            cls.create_message(message, prepared_config, context)
+            for message in config.pop("messages")
+        ]
         # build prompt & chain
         prompt = ChatPromptTemplate.from_messages(messages)
-        chain = cls(
-            **config, callback_manager=callback_manager, prompt=prompt, verbose=True
+        return cls(
+            **config,
+            callback_manager=callback_manager,
+            prompt=prompt,
+            verbose=True
         )
-
-        return chain
 
 
 class LLMReply(LLMChain):
