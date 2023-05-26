@@ -108,9 +108,10 @@ class ChooseTool(Chain):
     @property
     def tool_prompt(self):
         """build prompt for configured tools"""
-        lines = []
-        for i, tool in enumerate(self.tool_configs.values()):
-            lines.append(f'{i}. {tool["name"]}: {tool["description"]}')
+        lines = [
+            f'{i}. {tool["name"]}: {tool["description"]}'
+            for i, tool in enumerate(self.tool_configs.values())
+        ]
         return "\n".join(lines)
 
     def _call(self, inputs: Dict[str, str]) -> Dict[str, str]:
@@ -128,7 +129,7 @@ class ChooseTool(Chain):
         tool_name = response_data.pop("tool")
         tool_chain = self.get_tool(tool_name)
         merged_inputs = inputs.copy()
-        merged_inputs.update(response_data)
+        merged_inputs |= response_data
         logger.debug(f"running tool={tool_name} inputs={merged_inputs}")
         result = tool_chain.run(merged_inputs)
         logger.debug(f"ran tool={tool_name} result={result}")
